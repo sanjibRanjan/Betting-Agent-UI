@@ -259,44 +259,40 @@ const MatchDetails = () => {
 
         // Partnership Questions
         if (activeBatsmen.length >= 2) {
-          const batsman1 = activeBatsmen[0]?.playerName;
-          const batsman2 = activeBatsmen[1]?.playerName;
-          if (batsman1 && batsman2) {
-            questions.push({
-              id: 'partnership_runs',
-              question: `Will ${batsman1}-${batsman2} partnership reach 50 runs?`,
-              options: [
-                { text: 'Yes', odds: '2.10' },
-                { text: 'No', odds: '1.70' }
-              ]
-            });
+          const batsman1 = activeBatsmen[0];
+          const batsman2 = activeBatsmen[1];
+          if (batsman1?.playerName && batsman2?.playerName) {
+            // Calculate current partnership runs
+            const partnershipRuns = (batsman1.runs || 0) + (batsman2.runs || 0);
+
+            // Progressive partnership milestones
+            const partnershipMilestones = [50, 100, 150, 200];
+            const nextMilestone = partnershipMilestones.find(milestone => partnershipRuns < milestone);
+
+            if (nextMilestone) {
+              questions.push({
+                id: 'partnership_runs',
+                question: `Will ${batsman1.playerName}-${batsman2.playerName} partnership reach ${nextMilestone} runs?`,
+                options: [
+                  { text: 'Yes', odds: nextMilestone - partnershipRuns <= 20 ? '1.70' : '2.10' },
+                  { text: 'No', odds: nextMilestone - partnershipRuns <= 20 ? '2.10' : '1.70' }
+                ]
+              });
+            }
           }
         }
 
-        // Score Milestones - Format specific
-        let milestoneRuns;
-        switch (format) {
-          case 3: // T20
-            milestoneRuns = 150;
-            break;
-          case 1: // ODI
-            milestoneRuns = 250;
-            break;
-          case 2: // Test
-            milestoneRuns = 300;
-            break;
-          default:
-            milestoneRuns = 150; // Default to T20
-        }
+        // Progressive Score Milestones
+        const scoreMilestones = [100, 150, 200, 250, 300, 350, 400, 450, 500];
+        const nextScoreMilestone = scoreMilestones.find(milestone => runs < milestone);
 
-        // Only show milestone if current score is below the target
-        if (runs < milestoneRuns) {
+        if (nextScoreMilestone) {
           questions.push({
             id: 'score_milestone',
-            question: `Will ${battingTeam?.name || 'Current team'} reach ${milestoneRuns}+ runs?`,
+            question: `Will ${battingTeam?.name || 'Current team'} reach ${nextScoreMilestone}+ runs?`,
             options: [
-              { text: 'Yes', odds: '1.65' },
-              { text: 'No', odds: '2.20' }
+              { text: 'Yes', odds: nextScoreMilestone - runs <= 30 ? '1.50' : '1.85' },
+              { text: 'No', odds: nextScoreMilestone - runs <= 30 ? '2.50' : '1.95' }
             ]
           });
         }
@@ -412,18 +408,30 @@ const MatchDetails = () => {
             }
           }
 
-          // Century prospects for Test batsmen
+          // Progressive individual score milestones for Test batsmen
           if (activeBatsmen.length > 0 && format === 2) {
             activeBatsmen.forEach((batsman, index) => {
-              if (batsman && batsman.runs >= 50) {
-                questions.push({
-                  id: `century_${index}`,
-                  question: `Will ${batsman.playerName} score a century?`,
-                  options: [
-                    { text: 'Yes', odds: batsman.runs >= 80 ? '1.80' : '3.00' },
-                    { text: 'No', odds: batsman.runs >= 80 ? '2.00' : '1.35' }
-                  ]
-                });
+              if (batsman && batsman.runs >= 40) {
+                // Progressive milestones: 50, 100, 150, 200, 250, 300
+                const individualMilestones = [50, 100, 150, 200, 250, 300];
+                const nextIndividualMilestone = individualMilestones.find(milestone => batsman.runs < milestone);
+
+                if (nextIndividualMilestone) {
+                  const milestoneText = nextIndividualMilestone === 50 ? 'half-century' :
+                                      nextIndividualMilestone === 100 ? 'century' :
+                                      nextIndividualMilestone === 150 ? '150' :
+                                      nextIndividualMilestone === 200 ? '200' :
+                                      nextIndividualMilestone === 250 ? '250' : '300';
+
+                  questions.push({
+                    id: `individual_${index}_${nextIndividualMilestone}`,
+                    question: `Will ${batsman.playerName} score a ${milestoneText}?`,
+                    options: [
+                      { text: 'Yes', odds: nextIndividualMilestone - batsman.runs <= 20 ? '1.70' : '2.50' },
+                      { text: 'No', odds: nextIndividualMilestone - batsman.runs <= 20 ? '2.10' : '1.55' }
+                    ]
+                  });
+                }
               }
             });
           }
