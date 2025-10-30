@@ -22,7 +22,7 @@ const MatchDetails = () => {
   const fetchMatchDetails = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:3000/api/matches/${matchId}`);
+      const response = await fetch(`https://betting-agent-server.onrender.com/api/matches/${matchId}`);
       const data = await response.json();
       if (data.success && data.data) {
         setMatchData(data.data.data || data.data);

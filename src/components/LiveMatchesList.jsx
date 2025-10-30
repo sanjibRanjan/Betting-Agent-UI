@@ -14,7 +14,7 @@ const LiveMatchesList = () => {
   const fetchMatches = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/live-matches');
+      const response = await fetch('https://betting-agent-server.onrender.com/api/live-matches');
       const data = await response.json();
       if (data.success) {
         setMatches(data.data);
